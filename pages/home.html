@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+
+            &.retracted .links-bar {
+                transform: translateX(-100%);
+            }
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            padding: 0px;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 160px;
+            height: calc(100vh - 60px);
+            position: sticky;
+            top: 60px;
+            margin: 0 20px;
+        }
+
+        .sidebar-left {
+            order: 1;
+        }
+
+        .sidebar-right {
+            order: 3;
+        }
+
+        .sidebar-ad {
+            width: 100%;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ddd;
+            color: #999;
+            font-size: 24px;
+        }
+
+        /* Nouvelles publicités horizontales */
+        .horizontal-ad {
+            width: 300px;
+            height: 50px;
+            background-color: #ddd;
+            color: #999;
+            display: none;
+            /* Caché par défaut sur grands écrans */
+            justify-content: center;
+            align-items: center;
+            margin: 15px auto;
+            font-size: 14px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: calc(100% - 400px);
+            margin: 0 auto;
+            overflow-y: auto;
+            background-color: #fff;
+            order: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero {
+            text-align: center;
+            margin: 0 0 20px 0;
+            max-width: 600px;
+            padding: 20px;
+            font-size: 2cap;
+        }
+
+        .hero h1 {
+            font-size: 2.2em;
+            margin-bottom: 20px;
+            font-family: serif;
+            color: #000;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .highlight {
+            color: transparent;
+            background: linear-gradient(45deg, #1e90ff, #00bfff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            font-family: serif;
+        }
+
+        .url {
+            color: #ff55aa;
+            font-family: serif;
+        }
+
+        .name {
+            color: orange;
+            font-family: serif;
+        }
+
+        .url-form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .url-input,
+        .custom-alias,
+        .select-time {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            color: #333;
+            border-radius: 10px;
+        }
+
+        .url-button {
+            padding: 12px 20px;
+            background-color: #000;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #fff;
+            border-radius: 10px;
+        }
+
+        .url-button:hover {
+            background-color: #ff55aa;
+        }
+
+        .stats {
+            text-align: center;
+            color: #666;
+            margin-top: 30px;
+            font-size: 14px;
+        }
+
+        .links-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background-color: #f8f8f8;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 250px;
+            transition: transform 0.3s ease-in-out;
+            z-index: 100;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .links-bar a {
+            text-decoration: none;
+            color: #000;
+            transition: color 0.3s ease;
+            font-size: 1em;
+            padding: 5px 0;
+        }
+
+        .links-bar a:hover {
+            color: #ff55aa;
+        }
+
+        .links-bar a::before {
+            margin-right: 5px;
+        }
+
+        .links-bar a:nth-child(1)::before {
+            content: "📌 ";
+        }
+
+        .links-bar a:nth-child(2)::before {
+            content: "✂️ ";
+        }
+
+        .links-bar a:nth-child(3)::before {
+            content: "🔗 ";
+        }
+
+        .links-bar a:nth-child(4)::before {
+            content: "🔍 ";
+        }
+
+        .links-bar a:nth-child(5)::before {
+            content: "📢 ";
+        }
+
+        .toggle-btn {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #000;
+            color: white;
+            padding: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            border-radius: 5px;
+            z-index: 101;
+        }
+
+        .retracted .links-bar {
+            transform: translateX(-100%);
+        }
+
+        .clipboard-container {
+            display: flex;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        #short-url-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+        }
+
+        #copy-button {
+            padding: 10px 15px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-left: none;
+            cursor: pointer;
+            border-radius: 0 5px 5px 0;
+        }
+
+        .hero {
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 1100px) {
+            .sidebar-right {
+                display: none;
+            }
+
+            .content {
+                max-width: calc(100% - 200px);
+            }
+
+            /* Afficher une publicité horizontale en haut */
+            .horizontal-ad.top {
+                display: flex;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .sidebar-left {
+                display: none;
+            }
+
+            .content {
+                max-width: 100%;
+            }
+
+            /* Afficher deux publicités horizontales */
+            .horizontal-ad {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+
+<body class="retracted">
+    <button class="toggle-btn" onclick="toggleLinksBar()">☰</button>
+
+    <div class="links-bar">
+        <a href="/about">About</a>
+        <a href="/">Shorten URL</a>
+        <a href="#">My URLs</a>
+        <a href="#">Generate QR Code</a>
+        <a href="/report">Report URL</a>
+    </div>
+
+    <div class="main-container">
+        <div class="sidebar sidebar-left">
+            <div class="sidebar-ad">PUB</div>
+        </div>
+
+        <div class="content">
+            <!-- Publicité horizontale en haut (s'affiche sur écrans moyens et petits) -->
+            <div class="horizontal-ad top">PUB 300x50</div>
+
+            <div class="hero">
+                <h1>Shorten your URL with <span class="highlight">shorten.at</span></h1>
+            </div>
+
+            <form action="/shorten" method="POST" style="width: 100%;">
+                <div class="url-form">
+                    <!-- Champ URL -->
+                    <input type="text" name="url" class="url-input" placeholder="Enter a long URL..." required>
+
+                    <!-- Champ facultatif pour un alias personnalisé -->
+                    <input type="text" name="customAlias" class="custom-alias" placeholder="Custom Alias ​​(optional)">
+
+                    <!-- Selectbox pour la durée -->
+                    <select name="timeSelect" class="select-time">
+                        <option value="never" selected>Expired never</option>
+                        <option value="30min">Expired in 30 minutes</option>
+                        <option value="1h">Expired in 1 hour</option>
+                        <option value="1d">Expired in 1 day</option>
+                        <option value="3d">Expired in 3 days</option>
+                        <option value="1w">Expired in 1 week</option>
+                        <option value="1m">Expired in 1 month</option>
+                        <option value="3m">Expired in 3 months</option>
+                        <option value="6m">Expired in 6 months</option>
+                        <option value="1a">Expired in 1 year</option>
+                    </select>
+
+                    <label for="trackClicks" style="margin-bottom: 10px;">
+                        <input type="checkbox" id="trackClicks" name="trackClicks">
+                        Track URL clicks
+                    </label>
+
+                    <button type="submit" class="url-button">Shorten</button>
+                    <div id="clipboard-container" class="clipboard-container" style="display: none;">
+                        <input type="text" id="short-url-input" readonly>
+                        <button id="copy-button" onclick="copyToClipboard()">📋</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Publicité horizontale en bas (s'affiche uniquement sur petits écrans) -->
+            <div class="horizontal-ad bottom">PUB 300x50</div>
+        </div>
+
+        <div class="sidebar sidebar-right">
+            <div class="sidebar-ad">PUB</div>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard() {
+            const input = document.getElementById("short-url-input");
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+
+            const button = document.getElementById("copy-button");
+            button.textContent = "✅";
+            setTimeout(() => {
+                button.textContent = "📋";
+            }, 2000);
+        }
+
+        function showShortenedUrl(url) {
+            const clipboardContainer = document.getElementById("clipboard-container");
+            const input = document.getElementById("short-url-input");
+            input.value = url;
+            clipboardContainer.style.display = "flex";
+        }
+
+        const form = document.querySelector("form");
+        form.addEventListener("submit", function (event) {
+            event.preventDefault();
+            const urlInput = document.querySelector("input[name='url']").value;
+
+            fetch('/shorten', {
+                method: 'POST',
+                body: new URLSearchParams({ url: urlInput }),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            })
+                .then(response => response.text())
+                .then(data => {
+                    showShortenedUrl(data);
+                });
+        });
+
+        function toggleLinksBar() {
+            document.body.classList.toggle("retracted");
+        }
+    </script>
+</body>
+
+</html>

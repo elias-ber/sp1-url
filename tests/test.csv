@@ -1,0 +1,5 @@
+url; alias; lifetime; tracked; password
+youtube.com; yt;30;;
+amazon.com; az;;;
+instagram.com; ig;3600;;
+twitter.com; x;400;;
