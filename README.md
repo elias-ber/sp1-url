@@ -2,6 +2,13 @@
 
 Un raccourcisseur d'URL simple permettant de transformer des URLs longues en versions plus courtes et plus faciles à partager.
 
+## Table des matières
+
+- [Stack (outils utilisés)](#️-stack-outils-utilisés)
+- [Fonctionnalités](#✨-fonctionnalités)
+- [Routes Express](#🌍-routes-express)
+- [Installation](#⚡-installation)
+
 ## 🛠️ Stack (outils utilisés)
 
 ### 🎨 Frontend
@@ -14,22 +21,33 @@ Un raccourcisseur d'URL simple permettant de transformer des URLs longues en ver
 - **Express.js** : Framework pour gérer les routes et les requêtes HTTP.
 - **MySQL** : Base de données relationnelle pour stocker les URLs raccourcies.
 - **dotenv** : Gestion des variables d'environnement.
-- **node-localstorage** : Stockage local temporaire des données.
+- **bcryptjs** : Pour le hachage des mots de passe.
+- **argon2** : Pour le hachage des mots de passe.
+- **passport** : Pour l'authentification des utilisateurs.
+- **passport-local** : Stratégie d'authentification locale pour Passport.
+- **multer** : Pour gérer les téléchargements de fichiers.
+- **csv-parser** : Pour parser les fichiers CSV.
+- **geoip-lite** : Pour obtenir des informations géographiques à partir des adresses IP.
 - **validator** : Validation des entrées utilisateur.
 
 #### 📦 Librairies utilisées :
 - `axios`
 - `body-parser`
-- `csv-parse`
+- `bcryptjs`
+- `argon2`
+- `csv-parser`
 - `dotenv`
-- `easyqrcodejs-nodejs`
 - `express`
+- `express-session`
 - `fs`
+- `geoip-lite`
+- `multer`
 - `mustache-express`
 - `mysql2`
-- `node-localstorage`
-- `nodemon`
+- `passport`
+- `passport-local`
 - `validator`
+- `nodemon`
 
 ## ✨ Fonctionnalités
 - 🔗 **Raccourcissement d'URL** : Permet de convertir une URL longue en une version courte.
@@ -40,7 +58,8 @@ Un raccourcisseur d'URL simple permettant de transformer des URLs longues en ver
 - 📲 **Génération de QR Code** : Création d'un QR code pour chaque URL raccourcie (via `easyqrcodejs-nodejs`).
 - 📂 **Importation CSV** : Possibilité d'importer plusieurs URLs depuis un fichier CSV.
 - 🔐 **Protection par mot de passe** : Option pour protéger une URL raccourcie avec un mot de passe.
-- 💾 **Sauvegarde des liens raccourcis** : Permet de sauvegarder et de suivre les liens raccourcis via le localStorage afin de garder en mémoire nos lien créés
+- 🔒 **Authentification des utilisateurs** : Système d'authentification pour gérer les utilisateurs.
+- 📝 **Gestion des profils utilisateurs** : Les utilisateurs peuvent mettre à jour leurs informations de profil.
 
 ## 🌍 Routes Express
 
@@ -48,20 +67,23 @@ Un raccourcisseur d'URL simple permettant de transformer des URLs longues en ver
 
 | METHOD | Routes            | Description                                        |
 |--------|-------------------|----------------------------------------------------|
-| POST   | `/shorten`         | Crée une URL raccourcie à partir d'une URL longue. |
-| GET    | `/stats/:shortId`  | Affiche les statistiques d'une URL raccourcie. |
-| GET    | `/r/:shortId`      | Redirige l'utilisateur vers l'URL d'origine.   |
-| POST   | `/verify/:shortId` | Vérifie le mot de passe avant la redirection.  |
-| DELETE | `/delete/:shortId` | Supprime une URL raccourcie et ses données associées. |
-
-### 📡 API
-
-| METHOD | Routes           | Description                                        |
-|--------|------------------|----------------------------------------------------|
-| POST   | `/api/shorten`    | Endpoint API pour raccourcir une URL.         |
-| GET    | `/api/stats/:id`  | Retourne les statistiques d'une URL raccourcie. |
-| GET    | `/api/r/:shortId` | Redirige l'utilisateur vers l'URL d'origine.  |
-| POST   | `/api/verify/:shortId` | Vérifie le mot de passe avant la redirection. |
+| GET    | `/`               | Redirige vers la page de connexion.               |
+| GET    | `/login`          | Affiche la page de connexion.                     |
+| POST   | `/login`          | Gère la connexion des utilisateurs.               |
+| GET    | `/register`       | Affiche la page d'inscription.                    |
+| POST   | `/register`       | Gère l'inscription des nouveaux utilisateurs.     |
+| POST   | `/logout`         | Gère la déconnexion des utilisateurs.              |
+| GET    | `/dashboard`      | Affiche le tableau de bord des URLs raccourcies.  |
+| POST   | `/links`          | Crée une nouvelle URL raccourcie.                 |
+| POST   | `/links/:id`      | Met à jour une URL raccourcie existante.         |
+| POST   | `/links/:id/delete` | Supprime une URL raccourcie.                     |
+| POST   | `/links/bulk-upload` | Importe plusieurs URLs depuis un fichier CSV.    |
+| GET    | `/links/:id/stats` | Affiche les statistiques d'une URL raccourcie.   |
+| POST   | `/links/delete`   | Supprime plusieurs URLs raccourcies.              |
+| GET    | `/profile`        | Affiche le profil de l'utilisateur.               |
+| POST   | `/profile`        | Met à jour les informations du profil utilisateur.|
+| GET    | `/:shortId`       | Redirige vers l'URL d'origine.                    |
+| POST   | `/:shortId/verify` | Vérifie le mot de passe avant la redirection.     |
 
 ## ⚡ Installation
 
@@ -76,26 +98,34 @@ cd ton-repo
 ```
 
 📦 Installer les dépendances
-
-Copier le code
 ```bash
 npm install
 ```
 
+
 ⚙️ Configurer l'environnement
-Créer un fichier .env à la racine du projet et ajouter :
+Créer un fichier `.env` à la racine du projet en vous basant sur `.example.env` :
 
 ```ini
 PORT=3000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=ton_mot_de_passe
-DB_NAME=url_shortener
+DB_NAME=urls
+SECRET_KEY=
 ```
+
+🔄 Migrer la base de données
+```bash
+npx sequelize-cli db
+```
+
+
 🚀 Lancer le serveur
 ```bash
 npm start
-```
+!!!
+
 Ou avec Nodemon (pour le développement) :
 ```bash
 npm run dev
